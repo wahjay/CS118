@@ -65,7 +65,7 @@ def get_ip_setting():
                 if( len(line.split()) == 0):
                   break
                 name, ip = line.split()
-                print name, ip 
+                print name, ip
                 IP_SETTING[name] = ip
             info( '*** Successfully loaded ip settings for hosts\n %s\n' % IP_SETTING)
     except EnvironmentError:

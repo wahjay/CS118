@@ -24,15 +24,43 @@
 
 namespace simple_router {
 
+//time_point() = now;
+void ArpCache::handle_arpreq(const std::shared_ptr<ArpRequest>& req) {
+  if(time_point() - req->timeSent > seconds(1)) {
+    //remove the request after sending out 5 times
+    if (req->nTimesSent >= 5) {
+      m_arpRequests.remove(req);
+    }
+
+    //resend a ARP request
+    else {
+      for(auto const& arp : req->packets) {
+        m_router.sendPacket(arp.packet, arp.iface);
+      }
+
+      req->timeSent = time_point();
+      req->nTimesSent++;
+    }
+  }
+}
+
+bool isValid(std::shared_ptr<ArpEntry> entry) {
+  return !entry->isValid;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 // IMPLEMENT THIS METHOD
 void
 ArpCache::periodicCheckArpRequestsAndCacheEntries()
 {
+  //check requests status
+  for(auto const& request : m_arpRequests) {
+      handle_arpreq(request);
+  }
 
-  // FILL THIS IN
-
+  //remove requests that are stale
+  m_cacheEntries.remove_if(isValid);
 }
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////

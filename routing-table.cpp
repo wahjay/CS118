@@ -22,19 +22,79 @@
 #include <assert.h>
 #include <string.h>
 #include <unistd.h>
+#include <bitset>
 
 namespace simple_router {
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
+//return the index where the two strings start to diverge
+int ip_compare(std::string a, std::string am, std::string b) {
+  std::string left = "";
+  std::string right = "";
+  //convert left side to binary
+  char leftIp[a.length()+1];
+  char rightIp[b.length()+1];
+  strcpy(leftIp, a.c_str());
+  strcpy(rightIp, b.c_str());
+
+  char *l_token = strtok(leftIp, ".");
+  while(l_token){
+    left += std::bitset<8>(std::stoi(l_token)).to_string();
+    l_token = strtok(nullptr, ".");
+  }
+
+  //convert right side to binary
+  char *r_token = strtok(rightIp, ".");
+  while(r_token){
+    right += std::bitset<8>(std::stoi(r_token)).to_string();
+    r_token = strtok(nullptr, ".");
+  }
+
+  //left bits
+  char mask[am.length()+1];
+  strcpy(mask, am.c_str());
+  int a_mask = 0;
+  char *am_token = strtok(mask, ".");
+  while(am_token){
+    a_mask += ceil(log2(std::stoi(am_token)));
+    am_token = strtok(nullptr, ".");
+  }
+
+  //get prefix
+  left = left.substr(0, a_mask-1);
+
+  //compare
+  for(unsigned i=0; i<left.length(); i++) {
+
+    if(left[i] != right[i])
+      return i;
+  }
+
+  return left.length()-1;
+}
+
 // IMPLEMENT THIS METHOD
 RoutingTableEntry
 RoutingTable::lookup(uint32_t ip) const
 {
+  //if IP == 10.0.1.00, it would return 192.168.2.1
+  int result = 0;
+  bool empty = true;
+  RoutingTableEntry RTE = {};
+  for(auto const& entry : m_entries) {
+    int match = ip_compare(ipToString(entry.dest), ipToString(entry.gw), ipToString(ip));
+    if(match > result) {
+      result = match;
+      RTE = entry;
+      empty = false;
+    }
+  }
 
-  // FILL THIS IN
+  if(empty)
+    throw std::runtime_error("Routing entry not found");
 
-  throw std::runtime_error("Routing entry not found");
+  return RTE;
 }
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////

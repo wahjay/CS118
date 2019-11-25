@@ -26,8 +26,6 @@
    function handle_arpreq(req):
        if now - req->timeSent > seconds(1)
            if req->nTimesSent >= 5:
-               send icmp host unreachable to source addr of all pkts waiting
-                 on this request
                cache.removeRequest(req)
            else:
                send arp request
@@ -123,6 +121,8 @@ public:
   ArpCache(SimpleRouter& router);
 
   ~ArpCache();
+
+  void handle_arpreq(const std::shared_ptr<ArpRequest>& req);
 
   /**
    * IMPLEMENT THIS METHOD
