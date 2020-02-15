@@ -1,4 +1,4 @@
-UCLA CS118 Project (Simple Router)
+UCLA CS118 (Computer Network Fundamentals)Project (Simple Router)
 ====================================
 High level design of my implementation:
 
